@@ -1,6 +1,9 @@
 [submodule "Projetos/Locadora"]
 	path = Projetos/Locadora
-	url = https://github.com/yLexter/locadora-filmes.git
+	url = https://github.com/yLexter/locadora
 [submodule "Projetos/Sistema Academico"]
 	path = Projetos/Sistema Academico
 	url = https://github.com/yLexter/sistema-academico
+[submodule "Computação Gráfica"]
+	path = Computação Gráfica
+	url = https://github.com/yLexter/computacao-grafica
