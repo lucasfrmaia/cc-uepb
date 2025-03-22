@@ -1,9 +1,11 @@
-[submodule "Projetos/Locadora"]
-	path = Projetos/Locadora
-	url = https://github.com/yLexter/locadora
-[submodule "Projetos/Sistema Academico"]
-	path = Projetos/Sistema Academico
-	url = https://github.com/yLexter/sistema-academico
-[submodule "Computação Gráfica"]
-	path = Computação Gráfica
-	url = https://github.com/yLexter/computacao-grafica
+[submodule "Locadora"]
+    path = "C [Linguagem I]/projetos/locadora"
+    url = https://github.com/yLexter/locadora
+
+[submodule "Sistema Academico"]
+    path = "Java [Linguagem II]/projeto-sistema-academico"
+    url = https://github.com/yLexter/sistema-academico
+
+[submodule "Computacao Grafica"]
+    path = "Computacao Grafica"
+    url = https://github.com/yLexter/computacao-grafica
