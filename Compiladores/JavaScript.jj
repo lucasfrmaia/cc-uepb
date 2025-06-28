@@ -1,0 +1,498 @@
+/**
+ * Equipe:
+ * Rennan Fernandes da Silva
+ * Shara Isabell Alves de Oliveira
+ * Joana Dark Santana Santos
+ * João Vitor Aguiar de Sousa
+ * Lucas Ferreira Maia
+ */
+
+options
+{
+  static = false;
+}
+
+PARSER_BEGIN(JavaScript)
+
+package compiladorJS;
+
+import java.io.*;
+
+public class JavaScript {
+    public static void main(String[] args) throws IOException {
+        File pasta = new File("C:/Users/Renan/Pictures/Universidade/7periodo/CompiladoresProjeto/Compiladores/src/compiladorJS/testes");
+
+        if (!pasta.exists() || !pasta.isDirectory()) {
+            System.out.println("Diretório não encontrado.");
+            return;
+        }
+
+        File[] arquivos = pasta.listFiles(new FilenameFilter() {
+		    public boolean accept(File dir, String name) {
+		        return name.toLowerCase().endsWith(".js");
+		    }
+		});
+
+        if (arquivos == null || arquivos.length == 0) {
+            System.out.println("Nenhum arquivo .js encontrado no diretório.");
+            return;
+        }
+
+        for (File arquivo : arquivos) {
+            System.out.println("\nAnalisando: " + arquivo.getName());
+			FileInputStream fis = null;
+			try {
+			    fis = new FileInputStream(arquivo);
+			    JavaScript parser = new JavaScript(fis);
+			    parser.Programa();
+			    System.out.println("Tokens reconhecidos com sucesso no arquivo: " + arquivo.getName());
+			} catch (FileNotFoundException e) {
+			    System.out.println("Arquivo não encontrado: " + arquivo.getName());
+			} catch (ParseException e) {
+			    System.out.println("Erro de parsing no arquivo: " + arquivo.getName());
+			    System.out.println(e.getMessage());
+			} catch (Error e) {
+			    System.out.println("Erro interno ao analisar o arquivo: " + arquivo.getName());
+			    System.out.println(e.getMessage());
+			} finally {
+			    if (fis != null) try { fis.close(); } catch (IOException e) {}
+			}
+			            
+        }
+    }
+}
+
+
+PARSER_END(JavaScript)
+
+SKIP :
+{
+  " " | "\r" | "\t" | "\n"
+  | <"//" (~["\n","\r"])*> // Comentário de linha única
+  | <"/*" (~["*"] | "*" ~["/"])* "*/"> // Comentário de múltiplas linhas
+}
+
+// TIPOS BÁSICOS
+TOKEN : {
+    < REAL:
+        ( "+" | "-" )? ( <DIGITOS> )+ "." ( <DIGITOS> )+ 
+        |
+        ( "+" | "-" )? ( <DIGITOS> )+ ( "." ( <DIGITOS> )+ )? ( "e" | "E" ) ( "+" | "-" )? ( <DIGITOS> )+ > { System.out.println("Real"); }
+	| 
+	< INTEIRO: ( "+" | "-" )? ( <DIGITOS> )+ > { System.out.println("Inteiro"); }
+	| < #DIGITOS: ["0"-"9"] >
+	|
+	< STRING:
+        "\"" ( <ESCAPE> | <CHAR_DUASPAS> )* "\""
+      |
+        "'"  ( <ESCAPE> | <CHAR_SIMPASPAS> )* "'" > { System.out.println("String"); }
+ 	| < #ESCAPE: "\\" ( "\"" | "'" | "\\" ) >
+	| < #CHAR_DUASPAS: ~["\"", "\\", "\n", "\r"] >
+	| < #CHAR_SIMPASPAS: ~["'", "\\", "\n", "\r"] >
+	| < BOOLEANO: "true" | "false" >	{ System.out.println("Booleano"); }
+}
+
+// DELIMITADORES
+TOKEN : {
+    <VIRGULA: ","> { System.out.println("Virgula"); }
+  | <PONTO: "."> { System.out.println("Ponto"); } 
+  | <PONTO_VIRGULA: ";"> { System.out.println("Ponto e Virgula"); } 
+  | <ABRE_PARENTESES: "("> { System.out.println("Abre Parenteses"); }
+  | <FECHA_PARENTESES: ")"> { System.out.println("Fecha Parenteses"); } 
+  | <ABRE_COLCHETE: "["> { System.out.println("Abre Colchetes"); } 
+  | <FECHA_COLCHETE: "]"> { System.out.println("Fecha Colchetes"); } 
+  | <ABRE_CHAVE: "{"> { System.out.println("Abre Chaves"); } 
+  | <FECHA_CHAVE: "}"> { System.out.println("Fecha chaves"); } 
+}
+
+// OPERADORES ESTENDIDOS
+TOKEN : {
+    <RECEBE: "="> { System.out.println("Recebe"); }
+  | <MAIORQUE: ">"> { System.out.println("Maior que"); }
+  | <MENORQUE: "<"> { System.out.println("Menor que"); }
+  | <NOT: "!"> { System.out.println("NOT logico"); }
+  | <DOIS_PONTOS: ":"> { System.out.println("Dois pontos"); }
+  | <IGUAL: "=="> { System.out.println("Igual"); }
+  | <ESTRITO_IGUAL: "==="> { System.out.println("Estritamente igual"); }
+  | <MAIOR_IGUAL: ">="> { System.out.println("Maior igual"); } 
+  | <MENOR_IGUAL: "<="> { System.out.println("Menor igual"); }
+  | <ARROW_FUNCTION: "=>" > { System.out.println("Arrow Function"); } 
+  | <DIFERENTE: "!="> { System.out.println("Desigualdade"); } 
+  | <ESTRITO_DIFERENTE: "!=="> { System.out.println("Estritamente desigual"); } 
+  | <OR: "||"> { System.out.println("OU logico"); } 
+  | <AND: "&&"> { System.out.println("AND logico"); }
+  | <INCREMENTO: "++"> { System.out.println("Incrementando"); } 
+  | <DECREMENTO: "--"> { System.out.println("Decrementando"); }
+  | <MAIS: "+"> { System.out.println("Somando"); }
+  | <MENOS: "-"> { System.out.println("Subtraindo"); } 
+  | <EXPOENTE: "**"> { System.out.println("Exponenciando"); }
+  | < MULTIPLICA : "*" >  { System.out.println("Multiplicando"); }
+  | <DIVISAO: "/"> { System.out.println("Dividindo"); } 
+  | <MODULO: "%"> { System.out.println("Modulando"); } 
+  | <ATRIBUICAO_ADICAO: "+="> { System.out.println("Atribuindo e somando"); }
+  | <ATRIBUICAO_SUBTRACAO: "-="> { System.out.println("Atribuindo e subtraindo"); }
+  | <ATRIBUICAO_MULTIPLICACAO: "*="> { System.out.println("Atribuindo e multiplicando"); } 
+  | <ATRIBUICAO_DIVISAO: "/="> { System.out.println("Atribuindo e dividindo"); } 
+  | <ATRIBUICAO_RESTO: "%="> { System.out.println("Atribuindo o resto"); } 
+  | <ATRIBUICAO_EXPOENTE: "**="> { System.out.println("Atribuindo e exponenciando"); } 
+}
+
+// PALAVRAS RESERVADAS
+TOKEN : {
+    <BREAK: "break"> { System.out.println("break"); }
+  | <CASE: "case"> { System.out.println("case"); }
+  | <CATCH: "catch"> { System.out.println("catch"); }
+  | <CLASS: "class"> { System.out.println("class"); }
+  | <CONST: "const"> { System.out.println("const"); }
+  | <CONTINUE: "continue"> { System.out.println("continue"); }
+  | <DEBUGGER: "debugger"> { System.out.println("debugger"); }
+  | <DELETE: "delete"> { System.out.println("delete"); }
+  | <DO: "do"> { System.out.println("do"); }
+  | <ELSE: "else"> { System.out.println("else"); }
+  | <EXPORT: "export"> { System.out.println("export"); }
+  | <EXTENDS: "extends"> { System.out.println("extends"); }
+  | <FINALLY: "finally"> { System.out.println("finally"); }
+  | <FOR: "for"> { System.out.println("for"); }
+  | <FUNCTION: "function"> { System.out.println("function"); }
+  | <IF: "if"> { System.out.println("if"); }
+  | <IMPORT: "import"> { System.out.println("import"); }
+  | <IN: "in"> { System.out.println("in"); }
+  | <INSTANCEOF: "instanceof"> { System.out.println("instanceof"); }
+  | <NEW: "new"> { System.out.println("new"); }
+  | <RETURN: "return"> { System.out.println("return"); }
+  | <SUPER: "super"> { System.out.println("super"); }
+  | <SWITCH: "switch"> { System.out.println("switch"); }
+  | <THIS: "this"> { System.out.println("this"); }
+  | <THROW: "throw"> { System.out.println("throw"); }
+  | <TRY: "try"> { System.out.println("try"); }
+  | <TYPEOF: "typeof"> { System.out.println("typeof"); }
+  | <VAR: "var"> { System.out.println("var"); }
+  | <VOID: "void"> { System.out.println("void"); }
+  | <WHILE: "while"> { System.out.println("while"); }
+  | <WITH: "with"> { System.out.println("with"); }
+  | <YIELD: "yield"> { System.out.println("yield"); }
+  | <LET: "let"> { System.out.println("let"); }
+  | <IMPLEMENTS: "implements"> { System.out.println("implements"); }
+  | <INTERFACE: "interface"> { System.out.println("interface"); }
+  | <PACKAGE: "package"> { System.out.println("package"); }
+  | <PRIVATE: "private"> { System.out.println("private"); }
+  | <PROTECTED: "protected"> { System.out.println("protected"); }
+  | <PUBLIC: "public"> { System.out.println("public"); }
+  | <STATIC: "static"> { System.out.println("static"); }
+  | <PROMPT: "prompt"> { System.out.println("prompt"); }
+  | <CONSOLE: "console"> { System.out.println("console"); }
+  | <LOG: "log"> { System.out.println("log"); }
+  | <OF: "of"> { System.out.println("of"); }
+  | <UNDEFINED: "undefined"> { System.out.println("undefined"); }
+  | <NULL: "null"> { System.out.println("null"); }
+}
+
+// IDENTIFICADOR
+TOKEN :
+{
+  < IDENTIFICADOR:(< LETRA > | "_" | "$")(< LETRA > | < DIGITO > | "_" | "$")* > { System.out.println("Identificador"); }
+
+	| < #LETRA: ["a"-"z", "A"-"Z"] >
+	| < #DIGITO: ["0"-"9"] >
+}
+
+void operador_logico_ou_aritmetico() : {} {
+    <MAIS>
+  | <MENOS>
+  | <MULTIPLICA>
+  | <DIVISAO>
+  | <EXPOENTE>
+  | <MODULO>
+  | <IGUAL>
+  | <ESTRITO_IGUAL>
+  | <DIFERENTE>
+  | <ESTRITO_DIFERENTE>
+  | <MAIORQUE>
+  | <MENORQUE>
+  | <MAIOR_IGUAL>
+  | <MENOR_IGUAL>
+  | <AND>
+  | <NOT>
+  | <OR>
+}
+
+/**
+ * Regra inicial e principal da gramática.
+ * Um programa é definido como zero ou mais comandos, seguidos pelo fim do arquivo (EOF).
+ */
+void Programa() : {}
+{
+  ( comando() )* <EOF>
+}
+
+/**
+ * Um comando pode ser uma expressão (incluindo atribuições), um retorno, um laço, etc.
+ */
+void comando() : {}
+{
+    laco_while()
+  | estrutura_if()
+  | funcao()
+  | bloco()
+  | definicao_variavel()
+  | retorno()
+  | comandoExpressao()
+}
+
+/*
+ * HIERARQUIA DE EXPRESSÕES
+ * A estrutura abaixo define a precedência dos operadores, do menor (atribuição) para o maior (fator).
+ */
+
+// Nível 1: Atribuição (menor precedência, associatividade à direita)
+void expressao_atribuicao() : {}
+{
+  expressao_or() ( atribuicao_operador() expressao_atribuicao() { System.out.println("Atribuicao criada com sucesso"); } )?
+}
+
+// Nível 2: OU Lógico
+void expressao_or() : {}
+{
+  expressao_and() ( <OR> expressao_and() { System.out.println("Expressao OR criada com sucesso"); } )*
+}
+
+// Nível 3: E Lógico
+void expressao_and() : {}
+{
+  expressao_igualdade() ( <AND> expressao_igualdade() { System.out.println("Expressao AND criada com sucesso"); } )*
+}
+
+// Nível 4: Igualdade
+void expressao_igualdade() : {}
+{
+  expressao_relacional()
+  ( ( <IGUAL> | <DIFERENTE> | <ESTRITO_IGUAL> | <ESTRITO_DIFERENTE> ) expressao_relacional() { System.out.println("Expressao igualdade criada com sucesso"); } )*
+}
+
+// Nível 5: Relacional
+void expressao_relacional() : {}
+{
+  expressao_soma() ( ( <MAIORQUE> | <MENORQUE> | <MAIOR_IGUAL> | <MENOR_IGUAL> ) expressao_soma() { System.out.println("Expressao relacional criada com sucesso"); } )*
+}
+
+// Nível 6: Soma/Subtração
+void expressao_soma() : {}
+{
+  expressao_multiplicacao() ( ( <MAIS> | <MENOS> ) expressao_multiplicacao() { System.out.println("Expressao soma/subtracao criada com sucesso"); } )*
+}
+
+// Nível 7: Multiplicação/Divisão/Módulo
+void expressao_multiplicacao() : {}
+{
+  expressao_unaria() ( ( <MULTIPLICA> | <DIVISAO> | <MODULO> ) expressao_unaria() { System.out.println("Expressao multiplicacao/divisao/modulo criada com sucesso"); } )*
+}
+
+// Nivel 8: Operador Unário
+
+void expressao_unaria() : {}
+{
+  (<NOT> expressao_unaria() { System.out.println("Expressao de negação criada com sucesso"); })
+  |
+  expressao_postfix()
+}
+
+// Nível 9: Operadores Pós-fixados
+void expressao_postfix() : {}
+{
+  fator() ( <INCREMENTO> | <DECREMENTO> { System.out.println("Expressao postfix criada com sucesso"); } )?
+}
+
+// Nível 10: Fator (nível mais alto de precedência)
+void fator() : {}
+{
+  LOOKAHEAD( <IDENTIFICADOR> <ABRE_PARENTESES> )
+  chamada_funcao()
+|
+  comando_entrada()
+|
+  comando_saida()
+|
+  <IDENTIFICADOR>
+|
+  <INTEIRO>
+|
+  <REAL>
+|
+  <STRING>
+|
+  <BOOLEANO>
+|
+  <NULL>
+|
+  <UNDEFINED>
+|
+  <ABRE_PARENTESES> expressao() <FECHA_PARENTESES>
+}
+
+// A regra principal de expressões agora aponta para o topo da hierarquia
+void expressao() : {}
+{
+  expressao_atribuicao()
+}
+
+/*
+ * REGRAS DE APOIO E ESTRUTURAS
+ */
+
+// Função para agrupar todos os operadores de atribuição
+void atribuicao_operador() : {}
+{
+  <RECEBE> | <ATRIBUICAO_ADICAO> | <ATRIBUICAO_SUBTRACAO> |
+  <ATRIBUICAO_MULTIPLICACAO> | <ATRIBUICAO_DIVISAO> |
+  <ATRIBUICAO_RESTO> | <ATRIBUICAO_EXPOENTE>
+}
+
+/**
+ * Reconhece uma chamada de função padrão.
+ */
+void chamada_funcao() : {}
+{
+  <IDENTIFICADOR> <ABRE_PARENTESES> ( lista_argumentos() )? <FECHA_PARENTESES> { System.out.println("Chamada de funcao criada com sucesso"); }
+}
+
+/**
+ * Reconhece uma lista de argumentos separados por vírgula dentro de uma chamada de função.
+ */
+
+void lista_argumentos() : {}
+{
+  expressao() ( <VIRGULA> expressao() )*
+}
+
+/**
+ * Reconhece um laço de repetição 'while'.
+ */
+void laco_while() : {}
+{
+  <WHILE> <ABRE_PARENTESES> expressao() <FECHA_PARENTESES> bloco() { System.out.println("Laco While criado com sucesso"); }
+}
+
+/**
+ * Reconhece uma estrutura condicional 'if-else'.
+ * O bloco 'else' é opcional.
+ */
+void estrutura_if() : {}
+{
+  <IF> <ABRE_PARENTESES> expressao() <FECHA_PARENTESES> bloco() ( <ELSE> bloco() )? { System.out.println("IF criado com sucesso"); }
+}
+
+/**
+ * Reconhece um bloco de código delimitado por chaves '{}'.
+ * Um bloco pode conter zero ou mais comandos.
+ */
+void bloco() : {}
+{
+  <ABRE_CHAVE> (comando())* <FECHA_CHAVE>
+}
+
+/**
+ * Reconhece uma sentença 'return'.
+ * Pode ou não retornar um valor.
+ */
+void retorno() : {}
+{
+  <RETURN> (expressao())? <PONTO_VIRGULA> { System.out.println("Comando return criado com sucesso"); }
+}
+
+/**
+ * Regra para tirar ambiguidade da sintaxe entre uma arrow function e uma expressão padrão.
+ * Usa LOOKAHEAD para verificar se a sintaxe '(...)=>' ou 'id=>' está presente.
+ * Se sim, analisa como uma arrow function; caso contrário, como uma expressão normal.
+ */
+void comandoExpressao() : {}
+{
+  LOOKAHEAD( ( (<ABRE_PARENTESES> ( lista_identificadores() )? <FECHA_PARENTESES>) | <IDENTIFICADOR> ) <ARROW_FUNCTION> )
+  
+  // Se o LOOKAHEAD teve sucesso, então processe como uma arrow function
+  arrow_function()
+| 
+  // Se o LOOKAHEAD falhou, então processe como uma expressão normal seguida de ponto e vírgula
+  expressao() <PONTO_VIRGULA>
+}
+
+/**
+ * Reconhece uma declaração de função padrão.
+ */
+void funcao() : {}
+{
+  <FUNCTION> <IDENTIFICADOR> parametros() bloco()  { System.out.println("Funcao base declarada com sucesso"); }
+}
+
+/**
+ * Reconhece a lista de parâmetros na declaração de uma função.
+ */
+void parametros() : {}
+{
+  <ABRE_PARENTESES> ( lista_identificadores() )? <FECHA_PARENTESES>
+}
+
+/**
+ * Regra de apoio para analisar uma lista de identificadores separados por vírgula.
+ */
+void lista_identificadores() : {}
+{
+  <IDENTIFICADOR> ( <VIRGULA> <IDENTIFICADOR> )*
+}
+
+void expressao_atribuicao_variavel() : {} {
+  expressao_or() ( <RECEBE> expressao_atribuicao_variavel() { System.out.println("Atribuicao criada com sucesso"); } )?
+}
+
+/**
+ * Reconhece a sintaxe de uma arrow function.
+ * Pode ter um corpo de expressão ou um corpo de bloco.
+ */
+void arrow_function() : {}
+{
+  	( <ABRE_PARENTESES> ( lista_identificadores() )? <FECHA_PARENTESES>
+    	| <IDENTIFICADOR> )
+    <ARROW_FUNCTION> 
+    ( expressao() <PONTO_VIRGULA> { System.out.println("Arrow Function de expressao criada com sucesso"); }
+    	| bloco() ( <PONTO_VIRGULA> )? { System.out.println("Arrow Function com bloco criada com sucesso"); })
+}
+
+/**
+ * Reconhece uma chamada à função 'prompt' como uma expressão.
+ */
+void comando_entrada(): {} {
+    <PROMPT> <ABRE_PARENTESES> <STRING> <FECHA_PARENTESES>
+    { System.out.println("Comando de entrada reconhecido"); }
+}
+
+/**
+ * Reconhece uma chamada à função 'console.log' como uma expressão.
+ */
+void comando_saida(): {} {
+    <CONSOLE><PONTO><LOG> <ABRE_PARENTESES> expressao() <FECHA_PARENTESES>
+    { System.out.println("Comando de saida reconhecido"); }
+}
+
+/**
+ * Reconhece uma sentença de declaração de variável.
+ * Começa com 'let', 'var' ou 'const'.
+ */
+void definicao_variavel() : {}
+{
+  (<LET> | <VAR> | <CONST>) lista_declaracoes_variaveis() <PONTO_VIRGULA> { System.out.println("Definicao de variavel criada com sucesso"); }
+}
+
+/**
+ * Reconhece uma ou mais declarações de variáveis na mesma sentença.
+ */
+void lista_declaracoes_variaveis() : {}
+{
+  declaracao_variavel() ( <VIRGULA> declaracao_variavel() )*
+}
+
+/**
+ * Reconhece a declaração de uma única variável, com inicialização opcional.
+ */
+void declaracao_variavel() : {}
+{
+  <IDENTIFICADOR> ( <RECEBE> expressao_atribuicao() )?
+}
